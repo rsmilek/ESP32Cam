@@ -18,8 +18,18 @@
 
 #include "camera_pins.h"
 
+#define STATIC_IP_ADDRESS // Static IP address to use
+
 const char* ssid = "AC43";
 const char* password = "pauyki583180";
+
+#if defined(STATIC_IP_ADDRESS)
+IPAddress local_IP(192, 168, 0, 20);  // Set your Static IP address
+IPAddress gateway(192, 168, 0, 1);    // Set your Gateway IP address
+IPAddress subnet(255, 255, 0, 0);     
+IPAddress primaryDNS(8, 8, 8, 8);     //optional
+IPAddress secondaryDNS(8, 8, 4, 4);   //optional
+#endif
 
 void startCameraServer();
 
@@ -88,15 +98,24 @@ void setup() {
   s->set_vflip(s, 1);
   s->set_hmirror(s, 1);
 #endif
-
+  
+  // Connect to Wi-Fi network with SSID and password
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
   WiFi.begin(ssid, password);
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
   Serial.println("WiFi connected");
+
+#if defined(STATIC_IP_ADDRESS)
+  // Configures static IP address
+  Serial.println("Config static IP address");
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("Static IP address failed to configure");
+  }
+#endif
 
   startCameraServer();
 
